@@ -1,0 +1,8 @@
+version: '3.8'
+
+services:
+  instashortlist-backend:
+    image: chetan116116/instashortlist-backend:latest
+    container_name: instashortlist-backend
+    ports:
+      - "8080:8080"
