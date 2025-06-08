@@ -1,8 +1,31 @@
 version: '3.8'
 
 services:
-  instashortlist-backend:
-    image: chetan116116/instashortlist-backend:latest
-    container_name: instashortlist-backend
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: pass
+      MYSQL_DATABASE: mydb
+    ports:
+      - "3306:3306"
+
+  backend:
+    build: .
+    container_name: backend
+    depends_on:
+      - mysql
     ports:
       - "8080:8080"
+    environment:
+      SPRING_R2DBC_URL: r2dbc:mysql://mysql:3306/mydb
+      SPRING_R2DBC_USERNAME: root
+      SPRING_R2DBC_PASSWORD: pass
+    entrypoint: ["/bin/sh", "-c", "sleep 40 && java -jar target/backend-0.0.1-SNAPSHOT.jar"]
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8081:8080

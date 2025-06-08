@@ -5,7 +5,6 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Data
 @Table("applications")
@@ -15,8 +14,8 @@ public class Application {
     private String name;
     private String email;
     private String jobRole;
-    private List<String> matchedSkills;
-    private List<String> missingSkills;
+    private String matchedSkills;     // Comma-separated string
+    private String missingSkills;     // Comma-separated string
     private int matchScore;
     private String status;
     private String reason;
