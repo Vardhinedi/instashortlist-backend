@@ -1,4 +1,3 @@
-version: '3.8'
 
 services:
   mysql:
@@ -23,6 +22,8 @@ services:
       SPRING_R2DBC_USERNAME: root
       SPRING_R2DBC_PASSWORD: pass
     entrypoint: ["/bin/sh", "-c", "sleep 40 && java -jar target/backend-0.0.1-SNAPSHOT.jar"]
+    volumes:
+      - ./uploads:/app/uploads
 
   adminer:
     image: adminer

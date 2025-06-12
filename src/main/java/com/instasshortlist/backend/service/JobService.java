@@ -22,6 +22,9 @@ public class JobService {
     }
 
     public Mono<Job> createJob(Job job) {
+        // Set defaults if not provided
+        if (job.getIsActive() == null) job.setIsActive(true);
+        if (job.getApplicants() == null) job.setApplicants(0);
         return jobRepository.save(job);
     }
 
@@ -30,6 +33,14 @@ public class JobService {
                 .flatMap(existing -> {
                     existing.setTitle(updatedJob.getTitle());
                     existing.setDescription(updatedJob.getDescription());
+                    existing.setRole(updatedJob.getRole());
+                    existing.setLocation(updatedJob.getLocation());
+                    existing.setType(updatedJob.getType());
+                    existing.setLevel(updatedJob.getLevel());
+                    existing.setSalaryMin(updatedJob.getSalaryMin());
+                    existing.setSalaryMax(updatedJob.getSalaryMax());
+                    existing.setIsActive(updatedJob.getIsActive());
+                    existing.setApplicants(updatedJob.getApplicants());
                     return jobRepository.save(existing);
                 });
     }

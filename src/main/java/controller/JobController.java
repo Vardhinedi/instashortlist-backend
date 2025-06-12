@@ -28,8 +28,9 @@ public class JobController {
     }
 
     @PostMapping
-    public Mono<Job> createJob(@RequestBody Job job) {
-        return jobService.createJob(job);
+    public Mono<ResponseEntity<Job>> createJob(@RequestBody Job job) {
+        return jobService.createJob(job)
+                .map(savedJob -> ResponseEntity.status(201).body(savedJob));
     }
 
     @PutMapping("/{id}")

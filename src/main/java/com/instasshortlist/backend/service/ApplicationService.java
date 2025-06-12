@@ -2,12 +2,14 @@ package com.instashortlist.backend.service;
 
 import com.instashortlist.backend.model.Application;
 import com.instashortlist.backend.repository.ApplicationRepository;
-import com.instashortlist.backend.utils.ResumeTextExtractor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.nio.channels.Channels;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +26,22 @@ public class ApplicationService {
             "data analyst", List.of("sql", "excel", "python", "powerbi", "tableau")
     );
 
-    public Mono<Application> processApplication(FilePart resume, String name, String email, String jobRole) {
+    // ✅ Save resume file to disk and return path
+    public Mono<String> saveResumeFile(FilePart filePart) {
+        String path = "uploads/" + System.currentTimeMillis() + "-" + filePart.filename();
+        File targetFile = new File(path);
+
+        return filePart.transferTo(targetFile)
+                .then(Mono.just(targetFile.getAbsolutePath()));
+    }
+
+    // ✅ Save application with status "pending"
+    public Mono<Application> save(Application application) {
+        return repository.save(application);
+    }
+
+    // (Optional) Process application directly on upload - NOT used for Quartz
+    public Mono<Application> processNow(FilePart resume, String name, String email, String jobRole) {
         String jobRoleLower = jobRole.toLowerCase().trim();
 
         String matchedRole = expectedSkills.keySet().stream()
@@ -45,35 +62,33 @@ public class ApplicationService {
 
         List<String> requiredSkills = expectedSkills.get(matchedRole);
 
-        return ResumeTextExtractor.extractTextFromPdf(resume)
+        return resume
+                .transferTo(new File("temp_resume.pdf"))
+                .then(Mono.fromCallable(() -> com.instashortlist.backend.utils.ResumeTextExtractor.extractText(new File("temp_resume.pdf"))))
                 .flatMap(resumeText -> {
                     String resumeLower = resumeText.toLowerCase();
-                    List<String> matchedSkills = requiredSkills.stream()
-                            .filter(resumeLower::contains)
-                            .toList();
-                    List<String> missingSkills = requiredSkills.stream()
-                            .filter(skill -> !resumeLower.contains(skill))
-                            .toList();
+                    List<String> matched = requiredSkills.stream().filter(resumeLower::contains).toList();
+                    List<String> missing = requiredSkills.stream().filter(skill -> !resumeLower.contains(skill)).toList();
 
-                    int score = (int) (((double) matchedSkills.size() / requiredSkills.size()) * 100);
+                    int score = (int) (((double) matched.size() / requiredSkills.size()) * 100);
                     String status = (score >= 40) ? "shortlisted" : "rejected";
                     String reason;
-                    if (status.equals("shortlisted")) {
-                        reason = "✅ Shortlisted! Match Score: " + score + "%";
-                    } else if (matchedSkills.isEmpty()) {
+                    if (matched.isEmpty()) {
                         reason = "❌ Rejected. Resume lacks all required skills.";
                     } else if (score < 25) {
                         reason = "❌ Rejected. Very few matching skills.";
+                    } else if ("shortlisted".equals(status)) {
+                        reason = "✅ Shortlisted! Match Score: " + score + "%";
                     } else {
-                        reason = "❌ Rejected. Missing key skills: " + String.join(", ", missingSkills);
+                        reason = "❌ Rejected. Missing key skills: " + String.join(", ", missing);
                     }
 
                     Application app = new Application();
                     app.setName(name);
                     app.setEmail(email);
                     app.setJobRole(jobRoleLower);
-                    app.setMatchedSkills(String.join(",", matchedSkills));
-                    app.setMissingSkills(String.join(",", missingSkills));
+                    app.setMatchedSkills(String.join(",", matched));
+                    app.setMissingSkills(String.join(",", missing));
                     app.setMatchScore(score);
                     app.setStatus(status);
                     app.setReason(reason);

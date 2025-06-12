@@ -14,10 +14,11 @@ public class Application {
     private String name;
     private String email;
     private String jobRole;
-    private String matchedSkills;     // Comma-separated string
-    private String missingSkills;     // Comma-separated string
+    private String matchedSkills;
+    private String missingSkills;
     private int matchScore;
     private String status;
     private String reason;
+    private String resumePath;             // ✅ new field
     private LocalDateTime createdAt;
 }
