@@ -27,7 +27,7 @@ public class SecurityConfig {
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
                 .authorizeExchange(ex -> ex
-                        .pathMatchers("/api/auth/login", "/api/users", "/api/apply", "/api/test", "/api/auth/logout").permitAll()
+                        .pathMatchers("/api/auth/login", "/api/users", "/api/apply", "/api/test", "/api/auth/logout","/api/jobs").permitAll()
                         .anyExchange().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, SecurityWebFiltersOrder.AUTHENTICATION) // ✅ Fixed here

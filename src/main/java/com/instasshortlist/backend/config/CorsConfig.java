@@ -11,12 +11,15 @@ public class CorsConfig {
     @Bean
     public CorsWebFilter corsWebFilter() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowCredentials(true); // Must be true when using Authorization header
-        config.addAllowedOrigin("http://localhost:4200"); // Use exact origin, not "*"
-        config.addAllowedHeader("Authorization");
-        config.addAllowedHeader("Content-Type");
+        config.setAllowCredentials(true); // Important for Authorization header
+
+        // ✅ Allowed origins for local + Ngrok frontend
+        config.addAllowedOrigin("http://localhost:4200");
+        config.addAllowedOrigin("https://66d9-2a09-bac1-36a0-120-00-2a5-9f.ngrok-free.app");
+
+        config.addAllowedHeader("*");
         config.addAllowedMethod("*");
-        config.addExposedHeader("Authorization"); // Optional: lets frontend see token in response
+        config.addExposedHeader("Authorization");
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
