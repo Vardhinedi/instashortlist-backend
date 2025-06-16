@@ -1,4 +1,4 @@
-package com.instashortlist.backend.utils;
+package com.instashortlist.backend.util;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;

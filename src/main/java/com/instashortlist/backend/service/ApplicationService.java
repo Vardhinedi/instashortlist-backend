@@ -64,7 +64,7 @@ public class ApplicationService {
 
         return resume
                 .transferTo(new File("temp_resume.pdf"))
-                .then(Mono.fromCallable(() -> com.instashortlist.backend.utils.ResumeTextExtractor.extractText(new File("temp_resume.pdf"))))
+                .then(Mono.fromCallable(() -> com.instashortlist.backend.util.ResumeTextExtractor.extractText(new File("temp_resume.pdf"))))
                 .flatMap(resumeText -> {
                     String resumeLower = resumeText.toLowerCase();
                     List<String> matched = requiredSkills.stream().filter(resumeLower::contains).toList();

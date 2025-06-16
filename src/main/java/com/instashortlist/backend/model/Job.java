@@ -6,7 +6,7 @@ import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 @Data
-@Table("jobs")
+@Table("isl_jobs")
 public class Job {
     @Id
     private Long id;

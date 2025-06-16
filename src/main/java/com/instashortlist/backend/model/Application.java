@@ -7,7 +7,7 @@ import org.springframework.data.relational.core.mapping.Table;
 import java.time.LocalDateTime;
 
 @Data
-@Table("applications")
+@Table("isl_applications")
 public class Application {
     @Id
     private Long id;

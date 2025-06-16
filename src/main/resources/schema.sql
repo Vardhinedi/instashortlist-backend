@@ -1,5 +1,5 @@
 -- Create applications table
-CREATE TABLE IF NOT EXISTS applications (
+CREATE TABLE IF NOT EXISTS isl_applications (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(255),
     email VARCHAR(255),
@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS applications (
 );
 
 -- Create jobs table (Updated)
-CREATE TABLE IF NOT EXISTS jobs (
+CREATE TABLE IF NOT EXISTS isl_jobs (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(255),
     role VARCHAR(255),
@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS jobs (
 );
 
 -- Create opportunities table
-CREATE TABLE IF NOT EXISTS opportunities (
+CREATE TABLE IF NOT EXISTS isl_opportunities (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     company VARCHAR(255),
     role VARCHAR(255),
@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS opportunities (
 );
 
 -- Create users table
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE IF NOT EXISTS isl_users (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255),
     email VARCHAR(255),

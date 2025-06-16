@@ -2,7 +2,7 @@ package com.instashortlist.backend.jobs;
 
 import com.instashortlist.backend.model.Application;
 import com.instashortlist.backend.repository.ApplicationRepository;
-import com.instashortlist.backend.utils.ResumeTextExtractor;
+import com.instashortlist.backend.util.ResumeTextExtractor;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.springframework.beans.factory.annotation.Autowired;
