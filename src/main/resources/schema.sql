@@ -47,3 +47,13 @@ CREATE TABLE IF NOT EXISTS isl_users (
     username VARCHAR(255) UNIQUE,
     password VARCHAR(255)
 );
+
+-- Create candidates table
+CREATE TABLE IF NOT EXISTS isl_candidates (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    email VARCHAR(100),
+    resume_url TEXT,
+    job_id BIGINT,
+    FOREIGN KEY (job_id) REFERENCES isl_jobs(id) ON DELETE CASCADE
+);
