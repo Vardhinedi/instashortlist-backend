@@ -1,21 +1,23 @@
 package com.instashortlist.backend.model;
 
+import lombok.Data;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
+
+@Data
+@Table("isl_candidates")
 public class Candidate {
+
+    @Id
+    private Long id;
+
     private String name;
     private String email;
-    private String jobRole;
-    private boolean shortlisted;
 
-    public Candidate(String name, String email, String jobRole, boolean shortlisted) {
-        this.name = name;
-        this.email = email;
-        this.jobRole = jobRole;
-        this.shortlisted = shortlisted;
-    }
+    @Column("resume_url")
+    private String resumeUrl;
 
-    // Getters
-    public String getName() { return name; }
-    public String getEmail() { return email; }
-    public String getJobRole() { return jobRole; }
-    public boolean isShortlisted() { return shortlisted; }
+    @Column("job_id")  // Foreign key to Job
+    private Long jobId;
 }
