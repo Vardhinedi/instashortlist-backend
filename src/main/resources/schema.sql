@@ -48,11 +48,23 @@ CREATE TABLE IF NOT EXISTS isl_users (
     password VARCHAR(255)
 );
 
--- Create candidates table
+-- Updated candidates table
 CREATE TABLE IF NOT EXISTS isl_candidates (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100),
+    role VARCHAR(100),
+    applied_role VARCHAR(100),
+    department VARCHAR(100),
+    employment_type VARCHAR(100),
+    work_type VARCHAR(100),
+    applied_date DATE,
+    status VARCHAR(100),
     email VARCHAR(100),
+    position VARCHAR(100),
+    attachments TEXT,
+    score INT,
+    phone VARCHAR(20),
+    experience INT,
     resume_url TEXT,
     job_id BIGINT,
     FOREIGN KEY (job_id) REFERENCES isl_jobs(id) ON DELETE CASCADE
