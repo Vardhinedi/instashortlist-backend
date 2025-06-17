@@ -15,11 +15,18 @@ public class Candidate {
     private Long id;
 
     private String name;
+    private String email;
+
+    @Column("phone")
+    private String phone;
+
+    @Column("role")
     private String role;
 
     @Column("applied_role")
     private String appliedRole;
 
+    @Column("department")
     private String department;
 
     @Column("employment_type")
@@ -31,17 +38,24 @@ public class Candidate {
     @Column("applied_date")
     private LocalDate appliedDate;
 
+    @Column("status")
     private String status;
-    private String email;
-    private String position;
-    private String attachments;
+
+    @Column("score")
     private Integer score;
-    private String phone;
+
+    @Column("position")
+    private String position;
+
+    @Column("experience")
     private Integer experience;
+
+    @Column("attachments")
+    private String attachments; // Comma-separated string: "Resume,ID"
 
     @Column("resume_url")
     private String resumeUrl;
 
     @Column("job_id")
-    private Long jobId;
+    private Long jobId; // Foreign key to isl_jobs
 }
