@@ -1,6 +1,6 @@
 package com.instashortlist.backend.config;
 
-import com.instashortlist.backend.jobs.ApplicationAutoProcessorJob;
+import com.instashortlist.backend.scheduler.LinkedInJob;
 import org.quartz.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,20 +9,21 @@ import org.springframework.context.annotation.Configuration;
 public class QuartzConfig {
 
     @Bean
-    public JobDetail applicationJobDetail() {
-        return JobBuilder.newJob(ApplicationAutoProcessorJob.class)
-                .withIdentity("applicationAutoProcessorJob")
+    public JobDetail linkedInJobDetail() {
+        return JobBuilder.newJob(LinkedInJob.class)
+                .withIdentity("linkedInJob")
                 .storeDurably()
                 .build();
     }
 
     @Bean
-    public Trigger applicationJobTrigger(JobDetail applicationJobDetail) {
+    public Trigger linkedInTrigger(JobDetail linkedInJobDetail) {
         return TriggerBuilder.newTrigger()
-                .forJob(applicationJobDetail)
-                .withIdentity("applicationAutoProcessorTrigger")
-                .withSchedule(SimpleScheduleBuilder.simpleSchedule()
-                        .withIntervalInMinutes(1) // ⏱ every 10 minutes
+                .forJob(linkedInJobDetail)
+                .withIdentity("linkedInTrigger")
+                .withSchedule(SimpleScheduleBuilder
+                        .simpleSchedule()
+                        .withIntervalInSeconds(60) // or change as needed
                         .repeatForever())
                 .build();
     }
