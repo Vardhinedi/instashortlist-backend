@@ -27,10 +27,18 @@ public class SecurityConfig {
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
                 .authorizeExchange(ex -> ex
-                        .pathMatchers("/api/auth/login", "/api/users", "/api/apply", "/api/test", "/api/auth/logout","/api/jobs","/api/candidates/**").permitAll()
+                        .pathMatchers(
+                            "/api/auth/login",
+                            "/api/users",
+                            "/api/apply",
+                            "/api/test",
+                            "/api/auth/logout",
+                            "/api/jobs",
+                            "/api/candidates/**"
+                        ).permitAll()
                         .anyExchange().authenticated()
                 )
-                .addFilterBefore(jwtAuthFilter, SecurityWebFiltersOrder.AUTHENTICATION) // ✅ Fixed here
+                .addFilterBefore(jwtAuthFilter, SecurityWebFiltersOrder.AUTHENTICATION)
                 .httpBasic().and()
                 .build();
     }
