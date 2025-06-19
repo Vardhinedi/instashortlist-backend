@@ -30,6 +30,18 @@ public class CandidateService {
                 .flatMap(existing -> {
                     existing.setName(updated.getName());
                     existing.setEmail(updated.getEmail());
+                    existing.setPhone(updated.getPhone());
+                    existing.setRole(updated.getRole());
+                    existing.setAppliedRole(updated.getAppliedRole());
+                    existing.setDepartment(updated.getDepartment());
+                    existing.setEmploymentType(updated.getEmploymentType());
+                    existing.setWorkType(updated.getWorkType());
+                    existing.setAppliedDate(updated.getAppliedDate());
+                    existing.setStatus(updated.getStatus());
+                    existing.setScore(updated.getScore());
+                    existing.setPosition(updated.getPosition());
+                    existing.setExperience(updated.getExperience());
+                    existing.setAttachments(updated.getAttachments());
                     existing.setResumeUrl(updated.getResumeUrl());
                     existing.setJobId(updated.getJobId());
                     return candidateRepository.save(existing);
