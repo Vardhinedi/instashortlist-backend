@@ -33,7 +33,7 @@ public class SecurityConfig {
                             "/api/apply",
                             "/api/test",
                             "/api/auth/logout",
-                            "/api/jobs",
+                            "/api/jobs/**",
                             "/api/candidates/**"
                         ).permitAll()
                         .anyExchange().authenticated()
