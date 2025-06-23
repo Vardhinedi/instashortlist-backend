@@ -21,9 +21,8 @@ public class QuartzConfig {
         return TriggerBuilder.newTrigger()
                 .forJob(linkedInJobDetail)
                 .withIdentity("linkedInTrigger")
-                .withSchedule(SimpleScheduleBuilder
-                        .simpleSchedule()
-                        .withIntervalInSeconds(60) // or change as needed
+                .withSchedule(SimpleScheduleBuilder.simpleSchedule()
+                        .withIntervalInSeconds(60)
                         .repeatForever())
                 .build();
     }

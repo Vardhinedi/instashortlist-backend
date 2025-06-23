@@ -1,6 +1,5 @@
-package com.instashortlist.backend.config;
+package com.instashortlist.backend.service;
 
-import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -23,26 +22,19 @@ public class Auth0TokenService {
     @Value("${auth0.token-uri}")
     private String tokenUri;
 
-    public Mono<String> getAccessToken() {
-        WebClient webClient = WebClient.create();
+    private final WebClient webClient = WebClient.create();
 
+    public Mono<String> getAccessToken() {
         return webClient.post()
                 .uri(tokenUri)
                 .bodyValue(Map.of(
+                        "grant_type", "client_credentials",
                         "client_id", clientId,
                         "client_secret", clientSecret,
-                        "audience", audience,
-                        "grant_type", "client_credentials"
+                        "audience", audience
                 ))
                 .retrieve()
-                .bodyToMono(TokenResponse.class)
-                .map(TokenResponse::getAccess_token);
-    }
-
-    @Data
-    private static class TokenResponse {
-        private String access_token;
-        private String token_type;
-        private int expires_in;
+                .bodyToMono(Map.class)
+                .map(body -> (String) body.get("access_token"));
     }
 }
