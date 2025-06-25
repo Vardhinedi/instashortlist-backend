@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS isl_candidates (
     status VARCHAR(100),
     email VARCHAR(100),
     position VARCHAR(100),
-    attachments TEXT,
+    attachments LONGBLOB CHARACTER SET BINARY,
     score INT,
     phone VARCHAR(20),
     experience INT,
