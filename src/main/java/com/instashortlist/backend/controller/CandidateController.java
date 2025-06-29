@@ -1,11 +1,10 @@
 package com.instashortlist.backend.controller;
-
+import com.instashortlist.backend.dto.CandidateResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.instashortlist.backend.model.Candidate;
 import com.instashortlist.backend.service.CandidateService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.*;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.validation.annotation.Validated;
@@ -40,7 +39,6 @@ public class CandidateController {
                     try {
                         Candidate candidate = objectMapper.readValue(candidateJson, Candidate.class);
 
-                        // Date string -> LocalDate parsing
                         if (candidate.getAppliedDate() == null && candidate.getAppliedDateStr() != null) {
                             try {
                                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -72,8 +70,8 @@ public class CandidateController {
     }
 
     @GetMapping
-    public Flux<Candidate> getAll() {
-        return candidateService.getAllCandidates();
+    public Flux<CandidateResponse> getAll() {
+        return candidateService.getAllCandidateResponses();
     }
 
     @GetMapping("/{id}")
@@ -98,26 +96,28 @@ public class CandidateController {
 
     @GetMapping("/{id}/resume")
     public Mono<ResponseEntity<byte[]>> downloadResume(@PathVariable Long id) {
-        return candidateService.getCandidateById(id)
-                .flatMap(candidate -> {
-                    ByteBuffer buffer = candidate.getAttachments();
+         return candidateService.getCandidateById(id)
+            .flatMap(candidate -> {
+                ByteBuffer buffer = candidate.getAttachments();
 
-                    if (buffer == null || !buffer.hasRemaining()) {
-                        return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(new byte[0]));
-                    }
+                if (buffer == null || buffer.remaining() == 0) {
+                    return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(new byte[0]));
+                }
 
-                    byte[] pdfData = new byte[buffer.remaining()];
-                    buffer.get(pdfData);
+                // Safely copy buffer contents regardless of backing array
+                byte[] pdfData = new byte[buffer.remaining()];
+                buffer.get(pdfData);     // Read into byte[]
+                buffer.rewind();         // Reset buffer position for reuse if needed
 
-                    HttpHeaders headers = new HttpHeaders();
-                    headers.setContentType(MediaType.APPLICATION_PDF);
-                    headers.setContentDisposition(ContentDisposition.attachment()
-                            .filename("resume_" + id + ".pdf")
-                            .build());
-                    headers.setContentLength(pdfData.length);
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_PDF);
+                headers.setContentDisposition(ContentDisposition.attachment()
+                        .filename("resume_" + id + ".pdf")
+                        .build());
+                headers.setContentLength(pdfData.length);
 
-                    return Mono.just(ResponseEntity.ok().headers(headers).body(pdfData));
-                })
-                .switchIfEmpty(Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(new byte[0])));
-    }
+                return Mono.just(ResponseEntity.ok().headers(headers).body(pdfData));
+            })
+            .switchIfEmpty(Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(new byte[0])));
+}
 }
