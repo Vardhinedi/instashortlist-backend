@@ -28,11 +28,11 @@ public class UserController {
     }
 
     @PostMapping
-    public Mono<User> create(@RequestBody User user) {
-        return service.create(user);
+    public Mono<ResponseEntity<User>> create(@RequestBody User user) {
+        return service.create(user)
+                .map(ResponseEntity::ok)
+                .onErrorResume(e -> Mono.just(ResponseEntity.badRequest().build()));
     }
-
-  
 
     @PutMapping("/{id}")
     public Mono<ResponseEntity<User>> update(@PathVariable Long id, @RequestBody User user) {

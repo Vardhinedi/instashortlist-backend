@@ -1,8 +1,10 @@
 package com.instashortlist.backend.controller;
-import com.instashortlist.backend.dto.CandidateResponse;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.instashortlist.backend.dto.CandidateResponse;
 import com.instashortlist.backend.model.Candidate;
 import com.instashortlist.backend.service.CandidateService;
+import com.instashortlist.backend.service.CandidateStepService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
@@ -25,6 +27,9 @@ public class CandidateController {
 
     @Autowired
     private CandidateService candidateService;
+
+    @Autowired
+    private CandidateStepService candidateStepService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -50,7 +55,11 @@ public class CandidateController {
 
                         return fileMono
                                 .flatMap(file -> candidateService.createCandidateWithFile(candidate, file))
-                                .switchIfEmpty(Mono.just(candidate));
+                                .switchIfEmpty(Mono.just(candidate))
+                                .flatMap(saved ->
+                                    candidateStepService.createCandidateStepsFromAssessments(saved.getId(), saved.getJobId())
+                                        .thenReturn(saved)
+                                );
                     } catch (Exception e) {
                         return Mono.error(new IllegalArgumentException("Invalid candidate JSON: " + e.getMessage()));
                     }
@@ -96,28 +105,27 @@ public class CandidateController {
 
     @GetMapping("/{id}/resume")
     public Mono<ResponseEntity<byte[]>> downloadResume(@PathVariable Long id) {
-         return candidateService.getCandidateById(id)
-            .flatMap(candidate -> {
-                ByteBuffer buffer = candidate.getAttachments();
+        return candidateService.getCandidateById(id)
+                .flatMap(candidate -> {
+                    ByteBuffer buffer = candidate.getAttachments();
 
-                if (buffer == null || buffer.remaining() == 0) {
-                    return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(new byte[0]));
-                }
+                    if (buffer == null || buffer.remaining() == 0) {
+                        return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(new byte[0]));
+                    }
 
-                // Safely copy buffer contents regardless of backing array
-                byte[] pdfData = new byte[buffer.remaining()];
-                buffer.get(pdfData);     // Read into byte[]
-                buffer.rewind();         // Reset buffer position for reuse if needed
+                    byte[] pdfData = new byte[buffer.remaining()];
+                    buffer.get(pdfData);
+                    buffer.rewind();
 
-                HttpHeaders headers = new HttpHeaders();
-                headers.setContentType(MediaType.APPLICATION_PDF);
-                headers.setContentDisposition(ContentDisposition.attachment()
-                        .filename("resume_" + id + ".pdf")
-                        .build());
-                headers.setContentLength(pdfData.length);
+                    HttpHeaders headers = new HttpHeaders();
+                    headers.setContentType(MediaType.APPLICATION_PDF);
+                    headers.setContentDisposition(ContentDisposition.attachment()
+                            .filename("resume_" + id + ".pdf")
+                            .build());
+                    headers.setContentLength(pdfData.length);
 
-                return Mono.just(ResponseEntity.ok().headers(headers).body(pdfData));
-            })
-            .switchIfEmpty(Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(new byte[0])));
-}
+                    return Mono.just(ResponseEntity.ok().headers(headers).body(pdfData));
+                })
+                .switchIfEmpty(Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(new byte[0])));
+    }
 }

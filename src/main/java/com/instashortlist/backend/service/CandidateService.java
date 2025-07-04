@@ -1,14 +1,18 @@
 package com.instashortlist.backend.service;
 
-import com.instashortlist.backend.model.Candidate;
-import com.instashortlist.backend.repository.CandidateRepository;
-import com.instashortlist.backend.dto.CandidateResponse;
 import com.instashortlist.backend.dto.AttachmentDTO;
+import com.instashortlist.backend.dto.CandidateResponse;
+import com.instashortlist.backend.model.Assessment;
+import com.instashortlist.backend.model.Candidate;
+import com.instashortlist.backend.model.CandidateStep;
+import com.instashortlist.backend.repository.AssessmentRepository;
+import com.instashortlist.backend.repository.CandidateRepository;
+import com.instashortlist.backend.repository.CandidateStepRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Service;
-import org.springframework.core.io.buffer.DataBufferUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -20,6 +24,12 @@ public class CandidateService {
 
     @Autowired
     private CandidateRepository candidateRepository;
+
+    @Autowired
+    private AssessmentRepository assessmentRepository;
+
+    @Autowired
+    private CandidateStepRepository candidateStepRepository;
 
     public Flux<Candidate> getAllCandidates() {
         return candidateRepository.findAll();
@@ -79,6 +89,23 @@ public class CandidateService {
                 .flatMap(bytes -> {
                     candidate.setAttachments(ByteBuffer.wrap(bytes));
                     return candidateRepository.save(candidate);
+                })
+                .flatMap(savedCandidate -> {
+                    Long jobId = savedCandidate.getJobId();
+                    Long candidateId = savedCandidate.getId();
+
+                    return assessmentRepository.findByJobIdOrderByStepOrderAsc(jobId)
+                            .flatMap(assessment -> {
+                                CandidateStep step = new CandidateStep();
+                                step.setCandidateId(candidateId);
+                                step.setAssessmentId(assessment.getId());
+                                step.setStepOrder(assessment.getStepOrder());
+                                step.setStepName(assessment.getQuestion());
+                                step.setStatus("PENDING");
+                                step.setCompleted(false);
+                                return candidateStepRepository.save(step);
+                            })
+                            .then(Mono.just(savedCandidate)); // return candidate only after all steps saved
                 });
     }
 

@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS isl_candidates (
     status VARCHAR(100),
     email VARCHAR(100),
     position VARCHAR(100),
-    attachments LONGBLOB CHARACTER SET BINARY,
+    attachments LONGBLOB,
     score INT,
     phone VARCHAR(20),
     experience INT,
@@ -69,3 +69,38 @@ CREATE TABLE IF NOT EXISTS isl_candidates (
     job_id BIGINT,
     FOREIGN KEY (job_id) REFERENCES isl_jobs(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS isl_assessments (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    job_id BIGINT NOT NULL,
+    question TEXT,
+    options TEXT,                 -- store JSON string of options
+    correct_answer TEXT,
+    type VARCHAR(100),
+    step_order INT,
+    FOREIGN KEY (job_id) REFERENCES isl_jobs(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS isl_candidate_steps (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    candidate_id BIGINT UNSIGNED,
+    assessment_id BIGINT,
+    step_order INT,
+    step_name VARCHAR(255),
+    status VARCHAR(100),
+    completed BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (candidate_id) REFERENCES isl_candidates(id) ON DELETE CASCADE,
+    FOREIGN KEY (assessment_id) REFERENCES isl_assessments(id) ON DELETE CASCADE
+);
+
+-- STEP 3: isl_reviews table
+CREATE TABLE IF NOT EXISTS isl_reviews (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    step_id BIGINT UNSIGNED,
+    reviewer VARCHAR(255),
+    feedback TEXT,
+    score INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (step_id) REFERENCES isl_candidate_steps(id) ON DELETE CASCADE
+);
+

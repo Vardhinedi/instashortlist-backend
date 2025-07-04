@@ -12,6 +12,8 @@ import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 @Component
 public class JwtAuthFilter implements WebFilter {
 
@@ -21,16 +23,30 @@ public class JwtAuthFilter implements WebFilter {
     @Autowired
     private ReactiveUserDetailsService userDetailsService;
 
+    // ✅ List of public endpoints (should match exactly with SecurityConfig)
+    private static final List<String> PUBLIC_PATH_PREFIXES = List.of(
+            "/api/auth/login",
+            "/api/auth/logout",
+            "/api/users",
+            "/api/candidates",
+            "/api/jobs",
+            "/api/apply",
+            "/api/test",
+            "/api/candidate-steps",
+            "/api/assessments"
+    );
+
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         String path = exchange.getRequest().getURI().getPath();
 
-        // ✅ Skip JWT validation for auth-related public endpoints
-        // Only skip for login and logout endpoints
-        if (path.equals("/api/auth/login") || path.equals("/api/auth/logout")) {
+        // ✅ Allow all requests that start with any public prefix
+        boolean isPublic = PUBLIC_PATH_PREFIXES.stream().anyMatch(path::startsWith);
+        if (isPublic) {
             return chain.filter(exchange);
         }
 
+        // ✅ Extract Authorization header
         String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
@@ -40,6 +56,7 @@ public class JwtAuthFilter implements WebFilter {
                 String username = jwtUtil.getUsernameFromToken(token);
 
                 return userDetailsService.findByUsername(username)
+                        .switchIfEmpty(Mono.error(new RuntimeException("User not found")))
                         .map(userDetails -> new UsernamePasswordAuthenticationToken(
                                 userDetails,
                                 null,
@@ -53,6 +70,7 @@ public class JwtAuthFilter implements WebFilter {
             }
         }
 
-        return chain.filter(exchange); // Proceed without auth if no valid token
+        // Proceed without setting any authentication (will return 401 if endpoint is protected)
+        return chain.filter(exchange);
     }
 }

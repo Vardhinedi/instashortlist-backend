@@ -25,21 +25,28 @@ public class SecurityConfig {
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         return http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
+                .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable) // 🚨 DISABLE BASIC AUTH HERE
+                .formLogin(ServerHttpSecurity.FormLoginSpec::disable) // ✅ Also disable form login
                 .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
                 .authorizeExchange(ex -> ex
                         .pathMatchers(
-                            "/api/auth/login",
-                            "/api/users",
-                            "/api/apply",
-                            "/api/test",
-                            "/api/auth/logout",
-                            "/api/jobs/**",
-                            "/api/candidates/**"
+                                "/api/auth/login",
+                                "/api/auth/logout",
+                                "/api/users",
+                                "/api/users/**",
+                                "/api/candidates",
+                                "/api/candidates/**",
+                                "/api/jobs/**",
+                                "/api/apply",
+                                "/api/test",
+                                "/api/candidate-steps",
+                                "/api/candidate-steps/**",
+                                "/api/assessments",
+                                "/api/assessments/**"
                         ).permitAll()
                         .anyExchange().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, SecurityWebFiltersOrder.AUTHENTICATION)
-                .httpBasic().and()
                 .build();
     }
 
@@ -52,7 +59,6 @@ public class SecurityConfig {
     public UserDetailsRepositoryReactiveAuthenticationManager authenticationManager(
             ReactiveUserDetailsService userDetailsService,
             PasswordEncoder passwordEncoder) {
-
         var manager = new UserDetailsRepositoryReactiveAuthenticationManager(userDetailsService);
         manager.setPasswordEncoder(passwordEncoder);
         return manager;

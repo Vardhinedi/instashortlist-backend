@@ -6,6 +6,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
+
 @Configuration
 public class CorsConfig {
     @Bean
@@ -13,8 +15,13 @@ public class CorsConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
 
-        // 🔥 Allow all frontend dev origins (localhost + dynamic ngrok URLs)
-        config.addAllowedOrigin("http://localhost:4200");
+        // ✅ Add allowed origins including Vercel deployment link
+        config.setAllowedOrigins(Arrays.asList(
+                "http://localhost:4200",
+                "https://insta-shortlist-angular.vercel.app"
+        ));
+
+        // Optional: Also allow wildcard subdomains like ngrok
         config.addAllowedOriginPattern("https://*.ngrok-free.app");
 
         config.addAllowedHeader("*");
