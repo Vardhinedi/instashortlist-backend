@@ -42,7 +42,11 @@ public class SecurityConfig {
                                 "/api/candidate-steps",
                                 "/api/candidate-steps/**",
                                 "/api/assessments",
-                                "/api/assessments/**"
+                                "/api/assessments/**",
+                                "/api/assessment-templates",
+                                "/api/assessment-templates/**",
+                                "/reviews/**"
+
                         ).permitAll()
                         .anyExchange().authenticated()
                 )

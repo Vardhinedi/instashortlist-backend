@@ -13,6 +13,9 @@ public class JobService {
     @Autowired
     private JobRepository jobRepository;
 
+    @Autowired
+    private AssessmentService assessmentService;
+
     public Flux<Job> getAllJobs() {
         return jobRepository.findAll();
     }
@@ -22,10 +25,12 @@ public class JobService {
     }
 
     public Mono<Job> createJob(Job job) {
-        // Set defaults if not provided
-        if (job.getIsActive() == null) job.setIsActive(true);
-        if (job.getApplicants() == null) job.setApplicants(0);
-        return jobRepository.save(job);
+        return jobRepository.save(job)
+                .flatMap(saved ->
+                        assessmentService.generateAssessmentsFromTemplate(saved.getRole(), saved.getId())
+                                .collectList() // ✅ collect Flux into Mono
+                                .thenReturn(saved) // ✅ now this works
+                );
     }
 
     public Mono<Job> updateJob(Long id, Job updatedJob) {

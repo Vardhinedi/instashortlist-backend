@@ -104,3 +104,23 @@ CREATE TABLE IF NOT EXISTS isl_reviews (
     FOREIGN KEY (step_id) REFERENCES isl_candidate_steps(id) ON DELETE CASCADE
 );
 
+-- Table to store predefined assessment steps per role
+CREATE TABLE IF NOT EXISTS isl_assessment_templates (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    role VARCHAR(255) NOT NULL,
+    step_order INT,
+    question TEXT,
+    options TEXT,
+    correct_answer TEXT,
+    type VARCHAR(100)
+);
+
+-- Default steps for Product Manager
+INSERT INTO isl_assessment_templates (role, step_order, question, options, correct_answer, type) VALUES
+('Product Manager', 1, 'What is MVP in product development?', '["Minimum Viable Product", "Most Valuable Player", "Market Value Proposition", "Multi-version Product"]', 'Minimum Viable Product', 'MCQ'),
+('Product Manager', 2, 'Describe a time you prioritized user feedback.', null, null, 'TEXT');
+
+-- Default steps for Backend Developer
+INSERT INTO isl_assessment_templates (role, step_order, question, options, correct_answer, type) VALUES
+('Backend Developer', 1, 'What does ACID stand for in databases?', '["Atomicity, Consistency, Isolation, Durability", "Accuracy, Control, Integrity, Delay", "Alignment, Capability, Isolation, Duration", "Atomicity, Consistency, Integrity, Dependency"]', 'Atomicity, Consistency, Isolation, Durability', 'MCQ'),
+('Backend Developer', 2, 'Explain how you handle large datasets in memory.', null, null, 'TEXT');

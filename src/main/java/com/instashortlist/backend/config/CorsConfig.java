@@ -10,19 +10,16 @@ import java.util.Arrays;
 
 @Configuration
 public class CorsConfig {
+
     @Bean
     public CorsWebFilter corsWebFilter() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
 
-        // ✅ Add allowed origins including Vercel deployment link
-        config.setAllowedOrigins(Arrays.asList(
-                "http://localhost:4200",
-                "https://insta-shortlist-angular.vercel.app"
-        ));
-
-        // Optional: Also allow wildcard subdomains like ngrok
-        config.addAllowedOriginPattern("https://*.ngrok-free.app");
+        // ✅ Use origin patterns instead of setAllowedOrigins for wildcard support
+        config.addAllowedOriginPattern("http://localhost:4200");
+        config.addAllowedOriginPattern("https://insta-shortlist-angular.vercel.app");
+        config.addAllowedOriginPattern("https://*.ngrok-free.app"); // wildcard works here
 
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
