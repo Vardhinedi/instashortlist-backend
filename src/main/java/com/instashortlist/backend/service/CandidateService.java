@@ -8,6 +8,7 @@ import com.instashortlist.backend.model.CandidateStep;
 import com.instashortlist.backend.repository.AssessmentRepository;
 import com.instashortlist.backend.repository.CandidateRepository;
 import com.instashortlist.backend.repository.CandidateStepRepository;
+import com.instashortlist.backend.repository.JobRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.buffer.DataBufferUtils;
@@ -18,6 +19,7 @@ import reactor.core.publisher.Mono;
 
 import java.nio.ByteBuffer;
 import java.util.Base64;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class CandidateService {
@@ -30,6 +32,9 @@ public class CandidateService {
 
     @Autowired
     private CandidateStepRepository candidateStepRepository;
+
+    @Autowired
+    private JobRepository jobRepository;
 
     public Flux<Candidate> getAllCandidates() {
         return candidateRepository.findAll();
@@ -94,18 +99,35 @@ public class CandidateService {
                     Long jobId = savedCandidate.getJobId();
                     Long candidateId = savedCandidate.getId();
 
-                    return assessmentRepository.findByJobIdOrderByStepOrderAsc(jobId)
+                    AtomicInteger counter = new AtomicInteger(0);
+
+                    Mono<Void> steps = assessmentRepository.findByJobIdOrderByStepOrderAsc(jobId)
                             .flatMap(assessment -> {
                                 CandidateStep step = new CandidateStep();
                                 step.setCandidateId(candidateId);
                                 step.setAssessmentId(assessment.getId());
                                 step.setStepOrder(assessment.getStepOrder());
                                 step.setStepName(assessment.getQuestion());
-                                step.setStatus("PENDING");
+                                
+                                if (counter.getAndIncrement() == 0) {
+                                    step.setStatus("IN_PROGRESS"); // ✅ First step is active
+                                } else {
+                                    step.setStatus("PENDING");
+                                }
+
                                 step.setCompleted(false);
                                 return candidateStepRepository.save(step);
                             })
-                            .then(Mono.just(savedCandidate)); // return candidate only after all steps saved
+                            .then();
+
+                    Mono<Void> updateJob = jobRepository.findById(jobId)
+                            .flatMap(job -> {
+                                job.setApplicants(job.getApplicants() + 1);
+                                return jobRepository.save(job);
+                            })
+                            .then();
+
+                    return Mono.when(steps, updateJob).thenReturn(savedCandidate);
                 });
     }
 
