@@ -39,10 +39,16 @@
     </dependencyManagement>
 
     <dependencies>
-        <!-- ✅ Reactive WebFlux -->
+        <!-- ✅ Reactive WebFlux (exclude problematic native QUIC dependency) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webflux</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.netty.incubator</groupId>
+                    <artifactId>netty-incubator-codec-native-quic</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- ✅ Reactive Security -->

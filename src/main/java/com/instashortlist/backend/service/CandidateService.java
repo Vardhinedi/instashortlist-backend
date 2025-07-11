@@ -57,7 +57,7 @@ public class CandidateService {
                     dto.setScore(candidate.getScore());
                     dto.setPosition(candidate.getPosition());
                     dto.setExperience(candidate.getExperience());
-                    dto.setResumeUrl(candidate.getResumeUrl());
+                    
                     dto.setJobId(candidate.getJobId());
 
                     if (candidate.getAppliedDate() != null) {
@@ -148,7 +148,7 @@ public class CandidateService {
                     existing.setPosition(updated.getPosition());
                     existing.setExperience(updated.getExperience());
                     existing.setAttachments(updated.getAttachments());
-                    existing.setResumeUrl(updated.getResumeUrl());
+                    
                     existing.setJobId(updated.getJobId());
                     return candidateRepository.save(existing);
                 });

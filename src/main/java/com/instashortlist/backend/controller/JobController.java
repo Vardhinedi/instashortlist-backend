@@ -1,5 +1,6 @@
 package com.instashortlist.backend.controller;
 
+import com.instashortlist.backend.dto.JobRequest;
 import com.instashortlist.backend.model.Job;
 import com.instashortlist.backend.service.JobService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,8 +29,8 @@ public class JobController {
     }
 
     @PostMapping
-    public Mono<ResponseEntity<Job>> createJob(@RequestBody Job job) {
-        return jobService.createJob(job)
+    public Mono<ResponseEntity<Job>> createJob(@RequestBody JobRequest jobRequest) {
+        return jobService.createJob(jobRequest)
                 .map(savedJob -> ResponseEntity.status(201).body(savedJob));
     }
 

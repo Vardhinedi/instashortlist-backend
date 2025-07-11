@@ -17,12 +17,7 @@ public class AssessmentTemplate {
     @Column("step_order")
     private Integer stepOrder;
 
-    private String question;
-
-    private String options; // JSON string
-
-    @Column("correct_answer")
-    private String correctAnswer;
-
-    private String type;
+    @Column("step_name")
+    private String stepName;
+    
 }

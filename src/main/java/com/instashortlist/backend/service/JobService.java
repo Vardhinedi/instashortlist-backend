@@ -1,5 +1,6 @@
 package com.instashortlist.backend.service;
 
+import com.instashortlist.backend.dto.JobRequest;
 import com.instashortlist.backend.model.Job;
 import com.instashortlist.backend.repository.JobRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,13 +25,27 @@ public class JobService {
         return jobRepository.findById(id);
     }
 
-    public Mono<Job> createJob(Job job) {
+    public Mono<Job> createJob(JobRequest jobRequest) {
+        Job job = new Job();
+        job.setTitle(jobRequest.getTitle());
+        job.setRole(jobRequest.getRole());
+        job.setLocation(jobRequest.getLocation());
+        job.setDescription(jobRequest.getDescription());
+        job.setSalaryMin(jobRequest.getSalaryMin());
+        job.setSalaryMax(jobRequest.getSalaryMax());
+        job.setType(jobRequest.getType());
+        job.setLevel(jobRequest.getLevel());
+        job.setIsActive(jobRequest.getIsActive() != null ? jobRequest.getIsActive() : true);
+        job.setApplicants(0);
+
         return jobRepository.save(job)
-                .flatMap(saved ->
-                        assessmentService.generateAssessmentsFromTemplate(saved.getRole(), saved.getId())
-                                .collectList() // ✅ collect Flux into Mono
-                                .thenReturn(saved) // ✅ now this works
-                );
+                .flatMap(savedJob -> {
+                    // ✅ Use selected template IDs to create assessments
+                    return assessmentService.createAssessmentsFromTemplateIds(
+                            jobRequest.getAssessmentTemplateIds(),
+                            savedJob.getId()
+                    ).collectList().thenReturn(savedJob);
+                });
     }
 
     public Mono<Job> updateJob(Long id, Job updatedJob) {
