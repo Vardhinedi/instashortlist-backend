@@ -15,7 +15,7 @@ public class Review {
     private Long id;
 
     @Column("step_id")
-    private Long stepId;
+    private Long stepId; // Step ID will be set from path variable
 
     private String reviewer;
     private String feedback;

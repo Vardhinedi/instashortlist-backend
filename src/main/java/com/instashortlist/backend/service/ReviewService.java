@@ -49,31 +49,29 @@ public class ReviewService {
         return reviewRepository.deleteById(id);
     }
 
-    // ✅ NEW: Get all reviews for a step
     public Flux<Review> getReviewsByStepId(Long stepId) {
         return reviewRepository.findAll()
                 .filter(review -> review.getStepId().equals(stepId));
     }
 
-    // ✅ NEW: Create review + update step status based on score
+    // ✅ Create and link review to stepId, update step status
     public Mono<Review> createReviewForStep(Long stepId, Review review) {
         review.setStepId(stepId);
         review.setCreatedAt(LocalDateTime.now());
 
         return reviewRepository.save(review)
-                .flatMap(savedReview -> {
-                    return candidateStepRepository.findById(stepId)
-                            .flatMap(step -> {
-                                // Business logic: score < 50 means FAIL
-                                if (review.getScore() != null && review.getScore() < 50) {
-                                    step.setStatus("FAILED");
+                .flatMap(savedReview ->
+                        candidateStepRepository.findById(stepId)
+                                .flatMap(step -> {
+                                    if (review.getScore() != null && review.getScore() < 50) {
+                                        step.setStatus("FAILED");
+                                    } else {
+                                        step.setStatus("PASSED");
+                                    }
                                     step.setCompleted(true);
-                                } else {
-                                    step.setStatus("PASSED");
-                                    step.setCompleted(true);
-                                }
-                                return candidateStepRepository.save(step).thenReturn(savedReview);
-                            });
-                });
+                                    return candidateStepRepository.save(step)
+                                            .thenReturn(savedReview);
+                                })
+                );
     }
 }
