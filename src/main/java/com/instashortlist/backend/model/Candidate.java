@@ -82,7 +82,8 @@ public class Candidate {
     @Column("attachments")
     private ByteBuffer attachments; // ✅ Updated from byte[] to ByteBuffer
 
-    
+    @Column("resume_url")
+    private String resumeUrl;
 
     @NotNull(message = "Job ID cannot be null")
     @Column("job_id")
