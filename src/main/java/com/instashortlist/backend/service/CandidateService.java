@@ -9,7 +9,10 @@ import com.instashortlist.backend.repository.AssessmentRepository;
 import com.instashortlist.backend.repository.CandidateRepository;
 import com.instashortlist.backend.repository.CandidateStepRepository;
 import com.instashortlist.backend.repository.JobRepository;
+import com.instashortlist.backend.util.ResumeMatcherClient;
 
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.codec.multipart.FilePart;
@@ -19,6 +22,7 @@ import reactor.core.publisher.Mono;
 
 import java.nio.ByteBuffer;
 import java.util.Base64;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
@@ -35,6 +39,9 @@ public class CandidateService {
 
     @Autowired
     private JobRepository jobRepository;
+
+    @Autowired
+    private ResumeMatcherClient resumeMatcherClient;
 
     public Flux<Candidate> getAllCandidates() {
         return candidateRepository.findAll();
@@ -57,7 +64,6 @@ public class CandidateService {
                     dto.setScore(candidate.getScore());
                     dto.setPosition(candidate.getPosition());
                     dto.setExperience(candidate.getExperience());
-                    
                     dto.setJobId(candidate.getJobId());
 
                     if (candidate.getAppliedDate() != null) {
@@ -93,12 +99,25 @@ public class CandidateService {
                 })
                 .flatMap(bytes -> {
                     candidate.setAttachments(ByteBuffer.wrap(bytes));
-                    return candidateRepository.save(candidate);
+
+                    // ✅ Extract text from resume PDF
+                    return extractTextFromPdf(bytes)
+                            .flatMap(resumeText ->
+                                    resumeMatcherClient.getMatchScore(
+                                            resumeText,
+                                            candidate.getAppliedRole() != null ? candidate.getAppliedRole() : ""
+                                    )
+                            )
+                            .flatMap(result -> {
+                                // ✅ Set match_score into candidate.score
+                                Double score = (Double) result.get("match_score");
+                                candidate.setScore(score.intValue());
+                                return candidateRepository.save(candidate);
+                            });
                 })
                 .flatMap(savedCandidate -> {
                     Long jobId = savedCandidate.getJobId();
                     Long candidateId = savedCandidate.getId();
-
                     AtomicInteger counter = new AtomicInteger(0);
 
                     Mono<Void> steps = assessmentRepository.findByJobIdOrderByStepOrderAsc(jobId)
@@ -108,9 +127,9 @@ public class CandidateService {
                                 step.setAssessmentId(assessment.getId());
                                 step.setStepOrder(assessment.getStepOrder());
                                 step.setStepName(assessment.getQuestion());
-                                
+
                                 if (counter.getAndIncrement() == 0) {
-                                    step.setStatus("IN_PROGRESS"); // ✅ First step is active
+                                    step.setStatus("IN_PROGRESS");
                                 } else {
                                     step.setStatus("PENDING");
                                 }
@@ -148,7 +167,6 @@ public class CandidateService {
                     existing.setPosition(updated.getPosition());
                     existing.setExperience(updated.getExperience());
                     existing.setAttachments(updated.getAttachments());
-                    
                     existing.setJobId(updated.getJobId());
                     return candidateRepository.save(existing);
                 });
@@ -157,5 +175,18 @@ public class CandidateService {
     public Mono<Void> deleteCandidate(Long id) {
         return candidateRepository.findById(id)
                 .flatMap(candidateRepository::delete);
+    }
+
+    // ✅ Extract resume text using PDFBox
+    private Mono<String> extractTextFromPdf(byte[] pdfBytes) {
+        try {
+            PDDocument document = PDDocument.load(pdfBytes);
+            PDFTextStripper stripper = new PDFTextStripper();
+            String text = stripper.getText(document);
+            document.close();
+            return Mono.just(text);
+        } catch (Exception e) {
+            return Mono.error(new RuntimeException("PDF parsing error: " + e.getMessage()));
+        }
     }
 }
