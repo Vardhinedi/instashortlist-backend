@@ -1,7 +1,6 @@
 package com.instashortlist.backend.dto;
 
 import lombok.Data;
-import java.util.List;
 
 @Data
 public class JobRequest {
@@ -14,5 +13,4 @@ public class JobRequest {
     private String type;
     private String level;
     private Boolean isActive;
-    private List<Long> assessmentTemplateIds; // 🆕 selected templates
 }

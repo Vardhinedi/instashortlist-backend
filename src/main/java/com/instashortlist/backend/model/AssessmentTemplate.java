@@ -19,5 +19,10 @@ public class AssessmentTemplate {
 
     @Column("step_name")
     private String stepName;
-    
+
+    // ✅ Add these fields:
+    private String mode;
+
+    @Column("passing_criteria")
+    private String passingCriteria;
 }

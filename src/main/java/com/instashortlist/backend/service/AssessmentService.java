@@ -20,6 +20,11 @@ public class AssessmentService {
     @Autowired
     private AssessmentTemplateRepository assessmentTemplateRepository;
 
+    // 🔹 Fetch all assessments (new method)
+    public Flux<Assessment> getAllAssessments() {
+        return assessmentRepository.findAll();
+    }
+
     // 🔹 Fetch assessment steps for a job
     public Flux<Assessment> getAssessmentStepsByJobId(Long jobId) {
         return assessmentRepository.findByJobIdOrderByStepOrderAsc(jobId);
@@ -35,24 +40,26 @@ public class AssessmentService {
         return assessmentRepository.saveAll(steps);
     }
 
-    // ❌ (Deprecated): Generate from role – now disabled
+    // ❌ Deprecated: Generate from role
     public Flux<Assessment> generateAssessmentsFromTemplate(String role, Long jobId) {
-        return Flux.empty(); // No longer used – only selected templateIds are used
+        return Flux.empty(); // Deprecated
     }
 
     // ✅ Create from selected template IDs
     public Flux<Assessment> createAssessmentsFromTemplateIds(List<Long> templateIds, Long jobId) {
         return assessmentTemplateRepository.findAllById(templateIds)
-                .index() // adds (index, template)
+                .index()
                 .map(tuple -> {
                     long index = tuple.getT1();
                     AssessmentTemplate template = tuple.getT2();
 
                     Assessment a = new Assessment();
                     a.setJobId(jobId);
-                    a.setStepOrder((int) index + 1); // maintain order from frontend
-                    a.setQuestion(template.getStepName()); // take step name as question
-                    
+                    a.setStepOrder((int) index + 1);
+                    a.setStepName(template.getStepName());
+                    a.setMode(template.getMode());
+                    a.setPassingCriteria(template.getPassingCriteria());
+
                     return a;
                 })
                 .collectList()

@@ -14,9 +14,6 @@ public class JobService {
     @Autowired
     private JobRepository jobRepository;
 
-    @Autowired
-    private AssessmentService assessmentService;
-
     public Flux<Job> getAllJobs() {
         return jobRepository.findAll();
     }
@@ -38,14 +35,7 @@ public class JobService {
         job.setIsActive(jobRequest.getIsActive() != null ? jobRequest.getIsActive() : true);
         job.setApplicants(0);
 
-        return jobRepository.save(job)
-                .flatMap(savedJob -> {
-                    // ✅ Use selected template IDs to create assessments
-                    return assessmentService.createAssessmentsFromTemplateIds(
-                            jobRequest.getAssessmentTemplateIds(),
-                            savedJob.getId()
-                    ).collectList().thenReturn(savedJob);
-                });
+        return jobRepository.save(job);
     }
 
     public Mono<Job> updateJob(Long id, Job updatedJob) {

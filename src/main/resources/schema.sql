@@ -72,13 +72,14 @@ CREATE TABLE IF NOT EXISTS isl_candidates (
 CREATE TABLE IF NOT EXISTS isl_assessments (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     job_id BIGINT NOT NULL,
-    question TEXT,
-    options TEXT,                 -- store JSON string of options
-    correct_answer TEXT,
-    type VARCHAR(100),
     step_order INT,
+    step_name VARCHAR(255),
+    mode VARCHAR(100),
+    passing_criteria VARCHAR(255),
+    type VARCHAR(100),
     FOREIGN KEY (job_id) REFERENCES isl_jobs(id) ON DELETE CASCADE
 );
+
 
 CREATE TABLE IF NOT EXISTS isl_candidate_steps (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -103,15 +104,17 @@ CREATE TABLE IF NOT EXISTS isl_reviews (
     FOREIGN KEY (step_id) REFERENCES isl_candidate_steps(id) ON DELETE CASCADE
 );
 
--- Table to store predefined assessment steps per role
-DROP TABLE IF EXISTS isl_assessment_templates;
+
 
 CREATE TABLE IF NOT EXISTS isl_assessment_templates (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     role VARCHAR(255) NOT NULL,
     step_order INT,
-    step_name VARCHAR(255)
+    step_name VARCHAR(255),
+    mode VARCHAR(100),
+    passing_criteria VARCHAR(255)
 );
+
 
 -- Default steps for Product Manager
 INSERT INTO isl_assessment_templates (role, step_order, step_name) VALUES

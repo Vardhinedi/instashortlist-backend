@@ -25,10 +25,14 @@ public class SecurityConfig {
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         return http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
-                .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable) // 🚨 DISABLE BASIC AUTH HERE
-                .formLogin(ServerHttpSecurity.FormLoginSpec::disable) // ✅ Also disable form login
+                .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
+                .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
                 .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
                 .authorizeExchange(ex -> ex
+                        // ✅ Allow unauthenticated access to Angular static files
+                        .pathMatchers("/", "/index.html", "/favicon.ico", "/assets/**", "/*.js", "/*.css", "/*.map", "/InstaShortlist.png").permitAll()
+
+                        // ✅ Also allow APIs that don't need auth
                         .pathMatchers(
                                 "/api/auth/login",
                                 "/api/auth/logout",
@@ -46,8 +50,9 @@ public class SecurityConfig {
                                 "/api/assessment-templates",
                                 "/api/assessment-templates/**",
                                 "/reviews/**"
-
                         ).permitAll()
+
+                        // 🔒 Everything else requires auth
                         .anyExchange().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, SecurityWebFiltersOrder.AUTHENTICATION)

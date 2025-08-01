@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/register/register.component.css"],
+  "sourcesContent": [".card {\r\n  border-radius: 10px;\r\n}\r\n.brand-green-btn {\r\n  background-color: rgba(202, 210, 255, 0.568);\r\n  color: #222;\r\n  border: none;\r\n}\r\n.brand-green-btn:hover {\r\n  background-color: rgb(202, 210, 255);\r\n  color: #222;\r\n  cursor: pointer;\r\n}"],
+  "mappings": "AAAA,CAAC,KAAD,cACiB,IACjB,CACA,CAAC,gBACC,iBAAkB,UAClB,MAAO,KACP,OAAQ,IACV,CACA,CALC,eAKe,OACd,iBAAkB,QAClB,MAAO,KACP,OAAQ,OACV",
+  "names": []
+}

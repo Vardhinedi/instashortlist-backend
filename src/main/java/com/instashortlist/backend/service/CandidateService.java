@@ -9,7 +9,8 @@ import com.instashortlist.backend.repository.AssessmentRepository;
 import com.instashortlist.backend.repository.CandidateRepository;
 import com.instashortlist.backend.repository.CandidateStepRepository;
 import com.instashortlist.backend.repository.JobRepository;
-
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.codec.multipart.FilePart;
@@ -36,6 +37,9 @@ public class CandidateService {
     @Autowired
     private JobRepository jobRepository;
 
+    @Autowired
+    private CandidateStepService candidateStepService;
+
     public Flux<Candidate> getAllCandidates() {
         return candidateRepository.findAll();
     }
@@ -57,7 +61,6 @@ public class CandidateService {
                     dto.setScore(candidate.getScore());
                     dto.setPosition(candidate.getPosition());
                     dto.setExperience(candidate.getExperience());
-                    
                     dto.setJobId(candidate.getJobId());
 
                     if (candidate.getAppliedDate() != null) {
@@ -80,7 +83,8 @@ public class CandidateService {
     }
 
     public Mono<Candidate> getCandidateById(Long id) {
-        return candidateRepository.findById(id);
+        return candidateStepService.updateCandidateOverallScore(id)
+                .then(candidateRepository.findById(id));
     }
 
     public Mono<Candidate> createCandidateWithFile(Candidate candidate, FilePart file) {
@@ -93,12 +97,12 @@ public class CandidateService {
                 })
                 .flatMap(bytes -> {
                     candidate.setAttachments(ByteBuffer.wrap(bytes));
+                    candidate.setScore(80); // Dummy score
                     return candidateRepository.save(candidate);
                 })
                 .flatMap(savedCandidate -> {
                     Long jobId = savedCandidate.getJobId();
                     Long candidateId = savedCandidate.getId();
-
                     AtomicInteger counter = new AtomicInteger(0);
 
                     Mono<Void> steps = assessmentRepository.findByJobIdOrderByStepOrderAsc(jobId)
@@ -107,14 +111,8 @@ public class CandidateService {
                                 step.setCandidateId(candidateId);
                                 step.setAssessmentId(assessment.getId());
                                 step.setStepOrder(assessment.getStepOrder());
-                                step.setStepName(assessment.getQuestion());
-                                
-                                if (counter.getAndIncrement() == 0) {
-                                    step.setStatus("IN_PROGRESS"); // ✅ First step is active
-                                } else {
-                                    step.setStatus("PENDING");
-                                }
-
+                                step.setStepName(assessment.getStepName() != null ? assessment.getStepName() : "Untitled Step");
+                                step.setStatus(counter.getAndIncrement() == 0 ? "IN_PROGRESS" : "PENDING");
                                 step.setCompleted(false);
                                 return candidateStepRepository.save(step);
                             })
@@ -148,7 +146,6 @@ public class CandidateService {
                     existing.setPosition(updated.getPosition());
                     existing.setExperience(updated.getExperience());
                     existing.setAttachments(updated.getAttachments());
-                    
                     existing.setJobId(updated.getJobId());
                     return candidateRepository.save(existing);
                 });
@@ -157,5 +154,17 @@ public class CandidateService {
     public Mono<Void> deleteCandidate(Long id) {
         return candidateRepository.findById(id)
                 .flatMap(candidateRepository::delete);
+    }
+
+    private Mono<String> extractTextFromPdf(byte[] pdfBytes) {
+        try {
+            PDDocument document = PDDocument.load(pdfBytes);
+            PDFTextStripper stripper = new PDFTextStripper();
+            String text = stripper.getText(document);
+            document.close();
+            return Mono.just(text);
+        } catch (Exception e) {
+            return Mono.error(new RuntimeException("PDF parsing error: " + e.getMessage()));
+        }
     }
 }

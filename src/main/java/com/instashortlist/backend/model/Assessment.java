@@ -15,15 +15,14 @@ public class Assessment {
     @Column("job_id")
     private Long jobId;
 
-    private String question;
-
-    private String options; // store as JSON string
-
-    @Column("correct_answer")
-    private String correctAnswer;
-
     @Column("step_order")
     private Integer stepOrder;
 
-    private String type; // optional
+    @Column("step_name")
+    private String stepName;
+
+    private String mode; // e.g. MCQ, Video, Whiteboard, etc.
+
+    @Column("passing_criteria")
+    private String passingCriteria;
 }
