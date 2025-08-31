@@ -14,6 +14,9 @@ public class JobService {
     @Autowired
     private JobRepository jobRepository;
 
+    @Autowired
+    private AssessmentService assessmentService;
+
     public Flux<Job> getAllJobs() {
         return jobRepository.findAll();
     }

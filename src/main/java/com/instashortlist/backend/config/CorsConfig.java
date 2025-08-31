@@ -16,7 +16,7 @@ public class CorsConfig {
 
         // ✅ Allow only your trusted frontend origins
         config.addAllowedOriginPattern("http://localhost:4200"); // Local dev
-        config.addAllowedOriginPattern("http://172.30.12.158:4200"); // VM IP
+        config.addAllowedOriginPattern("http://192.168.1.2:8080"); // VM IP
         config.addAllowedOriginPattern("https://insta-shortlist-angular.vercel.app"); // Vercel prod
         config.addAllowedOriginPattern("https://*.ngrok-free.app"); // Ngrok dynamic
 

@@ -54,15 +54,29 @@ public class AssessmentService {
                     AssessmentTemplate template = tuple.getT2();
 
                     Assessment a = new Assessment();
-                    a.setJobId(jobId);
                     a.setStepOrder((int) index + 1);
                     a.setStepName(template.getStepName());
                     a.setMode(template.getMode());
-                    a.setPassingCriteria(template.getPassingCriteria());
+                    a.setPassingCriteria(Integer.valueOf(template.getPassingCriteria())); // Fixed: Convert String to Integer
 
                     return a;
                 })
                 .collectList()
                 .flatMapMany(assessmentRepository::saveAll);
+    }
+
+    // ✅ Existing: Link a job to a single assessment step
+    public Mono<Void> linkJobToAssessment(Long assessmentId, Long jobId, Integer stepOrder) {
+        return assessmentRepository
+                .linkJobToAssessment(jobId, assessmentId) // now returns Mono<Integer>
+                .then(); // ✅ ignore the row count
+    }
+
+    // ✅ New: Link a job to ALL steps of an assessment by title
+    public Flux<Assessment> linkJobToAssessmentByTitle(String title, Long jobId) {
+        return assessmentRepository.findByTitleOrderByStepOrderAsc(title)
+                .flatMap(step -> assessmentRepository
+                        .linkJobToAssessment(jobId, step.getId())
+                        .thenReturn(step));
     }
 }
